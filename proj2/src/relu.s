@@ -14,25 +14,27 @@
 # ==============================================================================
 relu:
     # Prologue
-
-
+    li t0, 1
+    blt a1, t0, error_exit
+    li t0, 0
 loop_start:
-
-
-
-
-
-
-
+    beq t0, a1, loop_end
+    slli t1, t0, 2      # offset = t0 * 4
+    add t2, a0, t1
+    lw t3, 0(t2)
+    bgt t3, x0, loop_continue
+    sw x0, 0(t2)
+    j loop_continue
 
 loop_continue:
-
-
+    addi t0, t0, 1
+    j loop_start
 
 loop_end:
-
-
     # Epilogue
 
 
     jr ra
+error_exit:
+    li a0, 36
+    j exit

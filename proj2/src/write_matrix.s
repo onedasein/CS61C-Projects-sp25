@@ -25,16 +25,69 @@
 write_matrix:
 
     # Prologue
+    addi sp, sp, -24
+    sw ra, 0(sp)
+    sw s0, 4(sp)
+    sw s1, 8(sp)
+    sw s2, 12(sp)
+    sw s3, 16(sp)
+    sw s4, 20(sp)
 
+    mv s0, a1
+    mv s2, a2
+    mv s3, a3
+    # open file
+    li a1, 1
+    jal fopen
+    li t0, -1
+    beq a0, t0, fopen_error
+    mv s1, a0
+    
+    # write rows and columns
+    addi sp, sp, -8
+    sw s2, 0(sp)
+    sw s3, 4(sp)
+    mv a0, s1
+    mv a1, sp
+    li a2, 2
+    li a3, 4
+    jal fwrite
+    li t0, 2
+    bne a0, t0, fwrite_error
+    lw s2, 0(sp)
+    lw s3, 4(sp)
+    addi sp, sp, 8
+    # write matrix
+    mv a0, s1
+    mv a1, s0
+    mul a2, s2, s3
+    mv s4, a2
+    li a3, 4
+    jal fwrite
+    bne a0, s4, fwrite_error
 
-
-
-
-
-
-
+    mv a0, s1
+    jal fclose
+    li t0, -1
+    beq a0, t0, fclose_error
 
     # Epilogue
-
-
+    mv a1, s0
+    lw ra, 0(sp)
+    lw s0, 4(sp)
+    lw s1, 8(sp)
+    lw s2, 12(sp)
+    lw s3, 16(sp)
+    lw s4, 20(sp)
+    addi sp, sp, 24
     jr ra
+fopen_error:
+    li a0, 27
+    j exit
+fwrite_error:
+    li a0, 30
+    j exit
+fclose_error:
+    li a0, 28
+    j exit
+

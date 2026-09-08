@@ -20,16 +20,6 @@ int convolve(matrix_t *a_matrix, matrix_t *b_matrix, matrix_t **output_matrix) {
   const int32_t *a = a_matrix->data;
   const int32_t *b = b_matrix->data;
 
-  size_t L2_CACHE_SIZE = 256 * 1024;
-  size_t row_bytes = (size_t)a_cols * sizeof(int32_t);
-
-  // tile height
-  uint32_t TILE_H = (uint32_t)((L2_CACHE_SIZE * 0.8) / row_bytes);
-  if (TILE_H < 1) {
-      TILE_H = 1;
-  }
-  if (TILE_H > out_rows) TILE_H = out_rows;
-
 
   matrix_t *out = (matrix_t *)malloc(sizeof(matrix_t));
   if (out == NULL) {
@@ -63,12 +53,7 @@ int convolve(matrix_t *a_matrix, matrix_t *b_matrix, matrix_t **output_matrix) {
   // out[i][j] = sum_{p,q} a[i+p][j+q] * b[b_rows-1-p][b_cols-1-q]  (mod 2^32)
   // out[i * a_cols + j] = sum_{p, q} a[] + b[]
   #pragma omp parallel for schedule(static)
-    for (uint32_t tile_start = 0; tile_start < out_rows; tile_start += TILE_H) {
-        uint32_t tile_end = tile_start + TILE_H;
-        if (tile_end > out_rows) tile_end = out_rows;
-
-        // 串行处理该行带内的每一行输出
-  for (uint32_t i = tile_start; i < tile_end; i++) {
+  for (uint32_t i = 0; i < out_rows; i++) {
     uint32_t j = 0;
     for (; j + 7 < out_cols; j+=8) {
       __m256i sum_vec = _mm256_setzero_si256(); 
@@ -98,7 +83,6 @@ int convolve(matrix_t *a_matrix, matrix_t *b_matrix, matrix_t **output_matrix) {
         out->data[(size_t)i * out_cols + j] = (int32_t)sum;
     }
   }
-}
   *output_matrix = out;
   return 0;
 

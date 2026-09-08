@@ -605,3 +605,7 @@ unit-test-*.snk
 convolve_*
 !src/io.o
 tests/
+
+# hive_sim build artifacts / logs (rebuild with tools/hive_sim/build_oracle.sh)
+tools/hive_sim/convolve_oracle
+tools/hive_sim/bench.log
